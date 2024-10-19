@@ -16,6 +16,7 @@ contract Diamond {
         LibDiamond.setContractOwner(_contractOwner);
 
         // Add the diamondCut external function from the diamondCutFacet
+        // The number 1 in this line represents the size of the array, indicating that we are creating an array to hold one FacetCut structure.
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
@@ -29,14 +30,22 @@ contract Diamond {
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
+    // Fallback function is executed when a contract is called but no matching function is found.
+    // It can also be used to receive Ether. This function is marked as external and payable.
+    // The fallback function is executed when a function that does not exist is called.
+    // It reverts the transaction with an error message indicating that the function does not exist.
     fallback() external payable {
+        //this is a storage pointer
         LibDiamond.DiamondStorage storage ds;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         // get diamond storage
+        //assigning a storage position
         assembly {
             ds.slot := position
         }
         // get facet from function selector
+        //even if we dont do .facetAddress at the end, its still return adresses
+        //specifying the one we want will take us straigt to the one we want 
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         // Execute external function from facet using delegatecall and return any value.
@@ -65,3 +74,5 @@ contract Diamond {
 
     receive() external payable {}
 }
+
+//forge t --rpc-url localhost: 8585 -vvvv

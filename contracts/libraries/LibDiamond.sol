@@ -65,6 +65,7 @@ library LibDiamond {
         address indexed newOwner
     );
 
+//transferring ownership
     function setContractOwner(address _newOwner) internal {
         DiamondStorage storage ds = diamondStorage();
         address previousOwner = ds.contractOwner;
@@ -292,8 +293,10 @@ library LibDiamond {
             if (_calldata.length > 0) revert NonEmptyCalldata();
         } else {
             if (_calldata.length == 0) revert EmptyCalldata();
+            // Check if the _init address is not the current contract's address.
+            // If it is a different address, we need to ensure that the address has valid contract code.
             if (_init != address(this)) {
-                enforceHasContractCode(_init);
+                enforceHasContractCode(_init); // This function checks that the contract at _init has code deployed.
             }
             (bool success, bytes memory error) = _init.delegatecall(_calldata);
             if (!success) {
